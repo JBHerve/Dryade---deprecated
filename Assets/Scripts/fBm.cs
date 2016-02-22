@@ -6,17 +6,18 @@ public class fBm : MonoBehaviour
     public float _H;
     public float _lacunarity;
     public float _octaves;
-    public float[,] height;
+    public float[,] heightmap;
     public float _offset;
 
-
-    public Perlin noise;
+    private int width;
+    private int height;
 
     // Use this for initialization
     void Start()
     {
-        noise = new Perlin();
-        height = new float[Terrain.activeTerrain.terrainData.heightmapWidth, Terrain.activeTerrain.terrainData.heightmapHeight];
+        width = gameObject.GetComponent<Terrain>().terrainData.heightmapWidth;
+        height = gameObject.GetComponent<Terrain>().terrainData.heightmapHeight;
+        heightmap = new float[width, height];
     }
 
     // Update is called once per frame
@@ -24,24 +25,19 @@ public class fBm : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            noise = new Perlin();
-            height = new float[Terrain.activeTerrain.terrainData.heightmapWidth, Terrain.activeTerrain.terrainData.heightmapHeight];
-            for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
-                for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
-                    height[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves);
-
-            gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, height);
-        }
-
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
-                for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
-                    height[i, j] = multifractal(new Vector2(i, j), _H, _lacunarity, _octaves, _offset);
-
-            gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, height);
+            SetHeightMap();
         }
     }
+
+    void SetHeightMap()
+    {
+        for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
+            for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
+                heightmap[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves);
+
+        gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap);
+    }
+
     /// <summary>
     /// Generate a number using fractal generation
     /// </summary>
@@ -59,7 +55,7 @@ public class fBm : MonoBehaviour
         for (; i < octaves; i++)
         {
 
-            value += noise.getPoint(point) * Mathf.Pow(lacunarity, -H * i);
+            value += (Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) * Mathf.Pow(lacunarity, -H * i);
             point *= lacunarity;
         }
 
@@ -72,7 +68,7 @@ public class fBm : MonoBehaviour
     }
 
     /// <summary>
-    /// Generate a number using multifractals
+    /// Generate a number using multifractals.
     /// </summary>
     /// <param name="point"></param>
     /// <param name="H">1 - fractal increment</param>
