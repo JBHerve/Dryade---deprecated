@@ -4,12 +4,14 @@ using System.Collections;
 public class fBm : MonoBehaviour
 {
     public float _H;
-    public float _lacunarity;
-    public float _octaves;
+    public float _lacunarity; //The frequencies of the fractal. High lacunarity create compact relief
+    public float _octaves; //Number of repetition of the fractal. Low number of octaves create soft relief
     public float[,] heightmap;
     public float _offset;
-    public float _divider;
+    public float _divider; //Divide all the point of the heightmap, lowering global height
+    public float _baseGround; //Set the height origin of the map. A high baseGround generate higher variation 
 
+    //Dimension of the heigthmap
     private int width;
     private int height;
 
@@ -34,7 +36,7 @@ public class fBm : MonoBehaviour
     {
         for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
             for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
-                heightmap[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves);
+                heightmap[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves) + _baseGround;
 
         gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap);
     }
@@ -85,7 +87,7 @@ public class fBm : MonoBehaviour
 
         for (int i = 0; i < octaves; i++)
         {
-            value *= ((Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) + offset) * Mathf.Pow(lacunarity , -H * i);
+            value *= ((Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) + offset) * Mathf.Pow(lacunarity , -H * i) * _divider;
             point.x *= lacunarity;
             point.y *= lacunarity;
         }
