@@ -11,6 +11,8 @@ public class fBm : MonoBehaviour
     public float _divider; //Divide all the point of the heightmap, lowering global height
     public float _baseGround; //Set the height origin of the map. A high baseGround generate higher variation 
 
+    public float _seed; //Genrate some randomness
+
     //Dimension of the heigthmap
     private int width;
     private int height;
@@ -58,7 +60,7 @@ public class fBm : MonoBehaviour
         for (; i < octaves; i++)
         {
 
-            value += (Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) * Mathf.Pow(lacunarity, -H * i) / _divider;
+            value += (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) * Mathf.Pow(lacunarity, -H * i) / _divider;
             point *= lacunarity;
         }
 
