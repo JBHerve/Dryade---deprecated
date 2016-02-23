@@ -8,6 +8,7 @@ public class fBm : MonoBehaviour
     public float _octaves;
     public float[,] heightmap;
     public float _offset;
+    public float _divider;
 
     private int width;
     private int height;
@@ -55,14 +56,14 @@ public class fBm : MonoBehaviour
         for (; i < octaves; i++)
         {
 
-            value += (Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) * Mathf.Pow(lacunarity, -H * i);
+            value += (Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) * Mathf.Pow(lacunarity, -H * i) / _divider;
             point *= lacunarity;
         }
 
         remainder = octaves - (int)octaves;
         if (remainder != 0)
         {
-            value += remainder * Mathf.PerlinNoise(point.x / Terrain.activeTerrain.terrainData.heightmapWidth, point.y / Terrain.activeTerrain.terrainData.heightmapHeight) * Mathf.Pow(lacunarity, -H * i);
+            value += remainder * Mathf.PerlinNoise(point.x / width, point.y / height) * Mathf.Pow(lacunarity, -H * i);
         }
         return value;
     }
@@ -76,7 +77,7 @@ public class fBm : MonoBehaviour
     /// <param name="octaves">Number of repetition of the fractal</param>
     /// <param name="offset">Control the multifractaly. The closet it's from 0, the more heterogenous the fractal is</param>
     /// <returns></returns>
-    float multifractal(Vector2 point, float H, float lacunarity, float octaves, float offset)
+    float Multifractal(Vector2 point, float H, float lacunarity, float octaves, float offset)
     {
         float value;
 
@@ -84,7 +85,7 @@ public class fBm : MonoBehaviour
 
         for (int i = 0; i < octaves; i++)
         {
-            value *= ((Mathf.PerlinNoise(point.x / Terrain.activeTerrain.terrainData.heightmapWidth, point.y / Terrain.activeTerrain.terrainData.heightmapHeight) * 2 - 1) + offset) * Mathf.Pow(lacunarity , -H * i);
+            value *= ((Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) + offset) * Mathf.Pow(lacunarity , -H * i);
             point.x *= lacunarity;
             point.y *= lacunarity;
         }
