@@ -7,7 +7,6 @@ public class fBm : MonoBehaviour
     public float _lacunarity; //The frequencies of the fractal. High lacunarity create compact relief
     public float _octaves; //Number of repetition of the fractal. Low number of octaves create soft relief
     public float[,] heightmap;
-    public float _offset;
     public float _divider; //Divide all the point of the heightmap, lowering global height
     public float _baseGround; //Set the height origin of the map. A high baseGround generate higher variation 
 
@@ -38,7 +37,7 @@ public class fBm : MonoBehaviour
     {
         for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
             for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
-                heightmap[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves) + _baseGround;
+                heightmap[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves);
 
         gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap);
     }
@@ -55,12 +54,19 @@ public class fBm : MonoBehaviour
     {
         float value = 0;
         float remainder = 0;
+        float weight = (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1 + _baseGround) * Mathf.Pow(lacunarity, -H * 0) / _divider;
+        float signal = 0;
         int i = 0;
 
         for (; i < octaves; i++)
         {
-
-            value += (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) * Mathf.Pow(lacunarity, -H * i) / _divider;
+            if (weight > 1.0f)
+            {
+                weight = 1.0f;
+            }
+            signal = (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1 + _baseGround) * Mathf.Pow(lacunarity, -H * i) / _divider;
+            value += signal * weight;
+            weight *= signal;
             point *= lacunarity;
         }
 
@@ -71,28 +77,5 @@ public class fBm : MonoBehaviour
         }
         return value;
     }
-
-    /// <summary>
-    /// Generate a number using multifractals.
-    /// </summary>
-    /// <param name="point"></param>
-    /// <param name="H">1 - fractal increment</param>
-    /// <param name="lacunarity">Gap between successive frequencies</param>
-    /// <param name="octaves">Number of repetition of the fractal</param>
-    /// <param name="offset">Control the multifractaly. The closet it's from 0, the more heterogenous the fractal is</param>
-    /// <returns></returns>
-    float Multifractal(Vector2 point, float H, float lacunarity, float octaves, float offset)
-    {
-        float value;
-
-        value = 1;
-
-        for (int i = 0; i < octaves; i++)
-        {
-            value *= ((Mathf.PerlinNoise(point.x / width, point.y / height) * 2 - 1) + offset) * Mathf.Pow(lacunarity , -H * i) * _divider;
-            point.x *= lacunarity;
-            point.y *= lacunarity;
-        }
-        return value;
-    }
+    
 }
