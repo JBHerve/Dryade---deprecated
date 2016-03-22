@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class fBm : MonoBehaviour
 {
@@ -27,10 +26,6 @@ public class fBm : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            SetHeightMap();
-        }
     }
 
     void SetHeightMap()

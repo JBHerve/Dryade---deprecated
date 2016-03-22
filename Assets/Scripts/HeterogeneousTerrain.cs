@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class ProceduralTerrain : MonoBehaviour
+public class HeterogeneousTerrain : MonoBehaviour
 {
 
     public float _H;
@@ -33,20 +32,19 @@ public class ProceduralTerrain : MonoBehaviour
 	
 	// Update is called once per frame
 	void Update () {
-
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            SetHeightMap();
-        }
-
     }
+    
 
     void SetHeightMap()
     {
         for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
             for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
-                heightmap[i, j] = Hetero_Terrain(new Vector2(i, j), _H, _lacunarity, _octaves, _offset);
+            {
+                heightmap[i, j] = HybridMultifractal(new Vector2(i, j), _H, _lacunarity, _octaves, _offset);
+            }
 
+
+        first = true;
         gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap);
     }
 
@@ -58,14 +56,13 @@ public class ProceduralTerrain : MonoBehaviour
         float value = 0;
         float increment = 0;
         float frequency = 0;
-        float remainder = 0;
 
 
         if (first)
         {
             exponent_array = new float[(int)octaves + 1];
             frequency = 1.0f;
-            for (i = 0; i < octaves; ++i)
+            for (i = 0; i <= octaves; ++i)
             {
                 exponent_array[i] = Mathf.Pow(frequency, -H);
                 frequency *= lacunarity; 
@@ -73,12 +70,12 @@ public class ProceduralTerrain : MonoBehaviour
             first = false;
         }
 
-        value = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) * Mathf.Pow(lacunarity, -H * i) / _divider;
+        value = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) / _divider;
         point *= lacunarity;
 
-        for (i = 0; i < octaves; ++i)
+        for (i = 0; i <= octaves; ++i)
         {
-            increment = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) * Mathf.Pow(lacunarity, -H * i) / _divider;
+            increment = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) / _divider;
             increment *= exponent_array[i];
             increment *= value;
 
@@ -89,4 +86,51 @@ public class ProceduralTerrain : MonoBehaviour
 
         return value;
     }
+
+    float HybridMultifractal(Vector2 point, float H, float lacunarity, float octaves, float offset)
+    {
+        int i = 0;
+
+
+        float result = 0;
+        float signal = 0;
+        float frequency = 0;
+        float weight = 0;
+
+
+        if (first)
+        {
+            exponent_array = new float[(int)octaves + 1];
+            frequency = 1.0f;
+            for (i = 0; i <= octaves; ++i)
+            {
+                exponent_array[i] = Mathf.Pow(frequency, -H);
+                frequency *= lacunarity;
+            }
+            first = false;
+        }
+
+        result = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) * exponent_array[0] / _divider;
+        weight = result;
+
+        for (i = 0; i < octaves; ++i)
+        {
+            if (weight > 1.0f)
+            {
+                weight = 1.0f;
+            }
+            signal = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1)/ _divider;
+            signal *= exponent_array[i];
+
+            result += weight * signal;
+
+            weight *= signal;
+
+            point *= lacunarity;
+        }
+
+        return result;
+    }
+
+
 }
