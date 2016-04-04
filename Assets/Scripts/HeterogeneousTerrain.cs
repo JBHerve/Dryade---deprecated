@@ -3,16 +3,16 @@
 public class HeterogeneousTerrain : MonoBehaviour
 {
 
-    public float _H;
-    public float _lacunarity; //The frequencies of the fractal. High lacunarity create compact relief
-    public float _octaves; //Number of repetition of the fractal. Low number of octaves create soft relief
-    public float _divider; //Divide all the point of the heightmap, lowering global height
-    public float _offset; //Postition from sea level
-    public float _seed;
+    public float H_;
+    public float lacunarity_; //The frequencies of the fractal. High lacunarity create compact relief
+    public float octaves_; //Number of repetition of the fractal. Low number of octaves create soft relief
+    public float divider_; //Divide all the point of the heightmap, lowering global height
+    public float offset_; //Postition from sea level
+    public float seed_;
 
-    private bool first;
-    private float[] exponent_array;
-    private float[,] heightmap;
+    private bool first_;
+    private float[] exponent_array_;
+    private float[,] heightmap_;
 
 
     //Dimension of the heigthmap
@@ -24,9 +24,9 @@ public class HeterogeneousTerrain : MonoBehaviour
     {
         width = gameObject.GetComponent<Terrain>().terrainData.heightmapWidth;
         height = gameObject.GetComponent<Terrain>().terrainData.heightmapHeight;
-        heightmap = new float[width, height];
+        heightmap_ = new float[width, height];
 
-        first = true;
+        first_ = true;
 
     }
 	
@@ -40,12 +40,12 @@ public class HeterogeneousTerrain : MonoBehaviour
         for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
             for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
             {
-                heightmap[i, j] = HybridMultifractal(new Vector2(i, j), _H, _lacunarity, _octaves, _offset);
+                heightmap_[i, j] = HybridMultifractal(new Vector2(i, j), H_, lacunarity_, octaves_, offset_);
             }
 
 
-        first = true;
-        gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap);
+        first_ = true;
+        gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap_);
     }
 
     float Hetero_Terrain(Vector2 point, float H, float lacunarity, float octaves, float offset)
@@ -58,25 +58,25 @@ public class HeterogeneousTerrain : MonoBehaviour
         float frequency = 0;
 
 
-        if (first)
+        if (first_)
         {
-            exponent_array = new float[(int)octaves + 1];
+            exponent_array_ = new float[(int)octaves + 1];
             frequency = 1.0f;
             for (i = 0; i <= octaves; ++i)
             {
-                exponent_array[i] = Mathf.Pow(frequency, -H);
+                exponent_array_[i] = Mathf.Pow(frequency, -H);
                 frequency *= lacunarity; 
             }
-            first = false;
+            first_ = false;
         }
 
-        value = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) / _divider;
+        value = offset + (Mathf.PerlinNoise(point.x / width + seed_, point.y / height + seed_) * 2 - 1) / divider_;
         point *= lacunarity;
 
         for (i = 0; i <= octaves; ++i)
         {
-            increment = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) / _divider;
-            increment *= exponent_array[i];
+            increment = offset + (Mathf.PerlinNoise(point.x / width + seed_, point.y / height + seed_) * 2 - 1) / divider_;
+            increment *= exponent_array_[i];
             increment *= value;
 
             value += increment;
@@ -98,19 +98,19 @@ public class HeterogeneousTerrain : MonoBehaviour
         float weight = 0;
 
 
-        if (first)
+        if (first_)
         {
-            exponent_array = new float[(int)octaves + 1];
+            exponent_array_ = new float[(int)octaves + 1];
             frequency = 1.0f;
             for (i = 0; i <= octaves; ++i)
             {
-                exponent_array[i] = Mathf.Pow(frequency, -H);
+                exponent_array_[i] = Mathf.Pow(frequency, -H);
                 frequency *= lacunarity;
             }
-            first = false;
+            first_ = false;
         }
 
-        result = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1) * exponent_array[0] / _divider;
+        result = offset + (Mathf.PerlinNoise(point.x / width + seed_, point.y / height + seed_) * 2 - 1) * exponent_array_[0] / divider_;
         weight = result;
 
         for (i = 0; i < octaves; ++i)
@@ -119,8 +119,8 @@ public class HeterogeneousTerrain : MonoBehaviour
             {
                 weight = 1.0f;
             }
-            signal = offset + (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1)/ _divider;
-            signal *= exponent_array[i];
+            signal = offset + (Mathf.PerlinNoise(point.x / width + seed_, point.y / height + seed_) * 2 - 1)/ divider_;
+            signal *= exponent_array_[i];
 
             result += weight * signal;
 

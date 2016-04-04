@@ -2,25 +2,25 @@
 
 public class fBm : MonoBehaviour
 {
-    public float _H;
-    public float _lacunarity; //The frequencies of the fractal. High lacunarity create compact relief
-    public float _octaves; //Number of repetition of the fractal. Low number of octaves create soft relief
-    public float[,] heightmap;
-    public float _divider; //Divide all the point of the heightmap, lowering global height
-    public float _baseGround; //Set the height origin of the map. A high baseGround generate higher variation 
+    public float H_;
+    public float lacunarity_; //The frequencies of the fractal. High lacunarity create compact relief
+    public float octaves_; //Number of repetition of the fractal. Low number of octaves create soft relief
+    public float[,] heightmap_;
+    public float divider_; //Divide all the point of the heightmap, lowering global height
+    public float baseGround_; //Set the height origin of the map. A high baseGround generate higher variation 
 
-    public float _seed; //Genrate some randomness
+    public float seed_; //Genrate some randomness
 
     //Dimension of the heigthmap
-    private int width;
-    private int height;
+    private int width_;
+    private int height_;
 
     // Use this for initialization
     void Start()
     {
-        width = gameObject.GetComponent<Terrain>().terrainData.heightmapWidth;
-        height = gameObject.GetComponent<Terrain>().terrainData.heightmapHeight;
-        heightmap = new float[width, height];
+        width_ = gameObject.GetComponent<Terrain>().terrainData.heightmapWidth;
+        height_ = gameObject.GetComponent<Terrain>().terrainData.heightmapHeight;
+        heightmap_ = new float[width_, height_];
     }
 
     // Update is called once per frame
@@ -32,9 +32,9 @@ public class fBm : MonoBehaviour
     {
         for (int i = 0; i < Terrain.activeTerrain.terrainData.heightmapWidth; i++)
             for (int j = 0; j < Terrain.activeTerrain.terrainData.heightmapHeight; j++)
-                heightmap[i, j] = FBM(new Vector2(i, j), _H, _lacunarity, _octaves);
+                heightmap_[i, j] = FBM(new Vector2(i, j), H_, lacunarity_, octaves_);
 
-        gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap);
+        gameObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, heightmap_);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class fBm : MonoBehaviour
     {
         float value = 0;
         float remainder = 0;
-        float weight = (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1 + _baseGround) * Mathf.Pow(lacunarity, -H * 0) / _divider;
+        float weight = (Mathf.PerlinNoise(point.x / width_ + seed_, point.y / height_ + seed_) * 2 - 1 + baseGround_) * Mathf.Pow(lacunarity, -H * 0) / divider_;
         float signal = 0;
         int i = 0;
 
@@ -59,7 +59,7 @@ public class fBm : MonoBehaviour
             {
                 weight = 1.0f;
             }
-            signal = (Mathf.PerlinNoise(point.x / width + _seed, point.y / height + _seed) * 2 - 1 + _baseGround) * Mathf.Pow(lacunarity, -H * i) / _divider;
+            signal = (Mathf.PerlinNoise(point.x / width_ + seed_, point.y / height_ + seed_) * 2 - 1 + baseGround_) * Mathf.Pow(lacunarity, -H * i) / divider_;
             value += signal * weight;
             weight *= signal;
             point *= lacunarity;
@@ -68,7 +68,7 @@ public class fBm : MonoBehaviour
         remainder = octaves - (int)octaves;
         if (remainder != 0)
         {
-            value += remainder * Mathf.PerlinNoise(point.x / width, point.y / height) * Mathf.Pow(lacunarity, -H * i);
+            value += remainder * Mathf.PerlinNoise(point.x / width_, point.y / height_) * Mathf.Pow(lacunarity, -H * i);
         }
         return value;
     }
