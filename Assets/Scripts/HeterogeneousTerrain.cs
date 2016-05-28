@@ -32,6 +32,8 @@ public class HeterogeneousTerrain : MonoBehaviour
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetKeyDown(KeyCode.C))
+            SetHeightMap();
     }
     
 
@@ -119,7 +121,7 @@ public class HeterogeneousTerrain : MonoBehaviour
             {
                 weight = 1.0f;
             }
-            signal = offset + (Mathf.PerlinNoise(point.x / width + seed_, point.y / height + seed_) * 2 - 1)/ divider_;
+            signal = offset + (Mathf.PerlinNoise(point.x / width + seed_, point.y / height + seed_) * 2 - 1) / divider_;
             signal *= exponent_array_[i];
 
             result += weight * signal;
@@ -131,6 +133,4 @@ public class HeterogeneousTerrain : MonoBehaviour
 
         return result;
     }
-
-
 }

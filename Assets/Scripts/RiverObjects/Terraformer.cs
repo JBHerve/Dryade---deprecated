@@ -38,7 +38,7 @@ namespace Assets.Scripts.RiverObjects
                         heightmap[i, j] = offset;
                         if (!isTop)
                         {
-                            list.Add(new Vector2(i, j));
+                            list.Add(new Vector2(j, i));
                             isTop = true;
                         }
                     }
@@ -47,7 +47,7 @@ namespace Assets.Scripts.RiverObjects
                         heightmap[i, j] = value;
                         if (isTop)
                         {
-                            list.Add(new Vector2(i, j));
+                            list.Add(new Vector2(j, i));
                             isTop = false;
                         }
                     }
