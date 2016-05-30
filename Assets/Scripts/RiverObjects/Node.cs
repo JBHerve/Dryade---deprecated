@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.RiverObjects
 {
-    class Node
+    public class Node
     {
         public Vector3 position { get; set; }
         public int priority { get; set; }
@@ -19,6 +19,11 @@ namespace Assets.Scripts.RiverObjects
             this.priority = priority;
             this.flow = flow;
             son = null;
+        }
+
+        public void AddSon(Node node)
+        {
+            son.Add(node);
         }
 
         public bool isALeaf()
