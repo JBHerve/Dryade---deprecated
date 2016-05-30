@@ -5,8 +5,6 @@ using Assets.Scripts.RiverObjects;
 
 public class River : MonoBehaviour
 {
-
-    List<Node> graph;
     public int seed;
 
 
@@ -51,8 +49,8 @@ public class River : MonoBehaviour
             else if (prob < Ps)
             {
                 //Symmetrical extension (Ps)
-                root.AddSon(new Node(new Vector3(), root.priority, root.flow));
-                root.AddSon(new Node(new Vector3(), root.priority, root.flow));
+                root.AddSon(new Node(new Vector3(), root.priority - 1, root.flow));
+                root.AddSon(new Node(new Vector3(), root.priority - 1, root.flow));
             }
             else
             {
@@ -60,5 +58,38 @@ public class River : MonoBehaviour
                 root.AddSon(new Node(new Vector3(), root.priority, root.flow));
             }
         }
+    }
+
+    public bool IsFarFromCoast(List<Vector2> coast, Vector3 point, float delta)
+    {
+        foreach (var item in coast)
+        {
+            float dst = Mathf.Sqrt(Mathf.Pow(item.x - point.x, 2) + Mathf.Pow(item.y - point.y, 2));
+            if (dst < delta)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public bool isFarFromRiver(Node node, Vector3 point)
+    {
+        if (node.isALeaf())
+        {
+            return true;
+        }
+        foreach (var son in node.son)
+        {
+            if (node.position - son.position == (point - son.position) + (node.position - point))
+            {
+                return false;
+            }
+            if (! isFarFromRiver(son, point))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
