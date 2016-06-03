@@ -22,8 +22,11 @@ public class River : MonoBehaviour
 
         var point = coast[rand.Next(coast.Count)];
         Vector3 position = new Vector3(point.x * coeffx, 0.2f, point.y * coeffz);
-        Node root = new Node(position, rand.Next(), rand.Next()); 
-
+        Node root = new Node(position, rand.Next(), rand.Next());
+        GameObject test = new GameObject();
+        test.transform.position = root.position;
+        GameObject test2 = new GameObject();
+        test2.transform.position = GeneratePoint(root, root, coast);
     }
 
     // Update is called once per frame
@@ -64,6 +67,7 @@ public class River : MonoBehaviour
     {
         foreach (var item in coast)
         {
+            // Compare the vector between father and new point, and not only the new point
             float dst = Mathf.Sqrt(Mathf.Pow(item.x - point.x, 2) + Mathf.Pow(item.y - point.y, 2));
             if (dst < delta)
             {
@@ -73,7 +77,7 @@ public class River : MonoBehaviour
         return true;
     }
 
-    public bool isFarFromRiver(Node node, Vector3 point)
+    public bool IsFarFromRiver(Node node, Vector3 point)
     {
         if (node.isALeaf())
         {
@@ -81,15 +85,38 @@ public class River : MonoBehaviour
         }
         foreach (var son in node.son)
         {
+            // TODO : Add a minimal distance
             if (node.position - son.position == (point - son.position) + (node.position - point))
             {
                 return false;
             }
-            if (! isFarFromRiver(son, point))
+            if (!IsFarFromRiver(son, point))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    // This work for only ONE river
+    public Vector3 GeneratePoint(Node father, Node root, List<Vector2> coast)
+    {
+        var rand = new System.Random();
+
+        while (true)
+        {
+            float x = Random.Range(father.position.x - 10, father.position.x + 10);
+            float z = Random.Range(father.position.z - 10, father.position.z + 10);
+            if (gameObject.GetComponent<Terrain>().SampleHeight(new Vector3(x, 0.2f, z)) > 0.2f)
+            {
+                if (IsFarFromRiver(root, new Vector3(x, 0.2f, z)))
+                {
+                    if (IsFarFromCoast(coast, new Vector3(x, 0.2f, z), 1))
+                    {
+                        return new Vector3(x, 0.2f, z);
+                    }
+                }
+            }
+        }
     }
 }
