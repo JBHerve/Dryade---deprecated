@@ -18,7 +18,7 @@ namespace Assets.Scripts.RiverObjects
             this.position = position;
             this.priority = priority;
             this.flow = flow;
-            son = null;
+            son = new List<Node>();
         }
 
         public void AddSon(Node node)
@@ -28,7 +28,7 @@ namespace Assets.Scripts.RiverObjects
 
         public bool isALeaf()
         {
-            return son == null;
+            return son.Count == 0;
         }
 
         public static bool operator >(Node a, Node b)
