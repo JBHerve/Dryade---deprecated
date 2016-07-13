@@ -72,18 +72,53 @@ public class River : MonoBehaviour
         }
     }
 
-    public bool IsFarFromCoast(List<Vector2> coast, Vector3 point, float delta)
+
+
+
+    public Vector4 IsFarFromCoast(List<Vector2> coast, float delta)
     {
+        
+        Vector2[] directions = new Vector2[8];
+
+        IncrementObject.Increment[] increments = new IncrementObject.Increment[directions.Length];
+
+        increments[0] = IncrementObject.GenerateIncrement(1, 0);
+        increments[1] = IncrementObject.GenerateIncrement(1, 1);
+        increments[2] = IncrementObject.GenerateIncrement(0, 1);
+        increments[3] = IncrementObject.GenerateIncrement(0, -1);
+        increments[4] = IncrementObject.GenerateIncrement(-1, -1);
+        increments[5] = IncrementObject.GenerateIncrement(-1, 0);
+        increments[6] = IncrementObject.GenerateIncrement(-1, 1);
+        increments[7] = IncrementObject.GenerateIncrement(1, -1);
+
+        for (int i = 0; i < directions.Length; ++i)
+        {
+            directions[i] = Maximise(new Vector2(0, 0), delta, increments[i]);
+        }
+
+        return new Vector4();
+    }
+
+    public Vector2 Maximise(Vector2 vect, float delta, IncrementObject.Increment incr)
+    {
+        float zero = 0;
+        float dst = 1 / zero;
         foreach (var item in coast)
         {
-            // Compare the vector between father and new point, and not only the new point
-            float dst = Mathf.Sqrt(Mathf.Pow(item.x - point.x, 2) + Mathf.Pow(item.y - point.y, 2));
-            if (dst < delta)
+            dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - vect.x, 2) + Mathf.Pow(item.y - vect.y, 2)));
+        }
+
+        Vector2 aux = vect;
+        while (dst < delta)
+        {
+            vect = aux;
+            aux = incr(vect);
+            foreach (var item in coast)
             {
-                return false;
+                dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - vect.x, 2) + Mathf.Pow(item.y - vect.y, 2)));
             }
         }
-        return true;
+        return vect;
     }
 
     public bool IsFarFromRiver(Node node, Vector3 point)
@@ -140,14 +175,6 @@ public class River : MonoBehaviour
                 for (int i = 0; i < root.son.Count && aux; i++)
                 {
                     aux = aux && IsFarFromRiver(root.son[i], new Vector3(x, y, z));
-                }
-                if (aux)
-                {
-                    var lol = IsFarFromCoast(coast, new Vector3(x, y, z), 20);
-                    if (lol)
-                    {
-                        return new Vector3(x, y, z);
-                    }
                 }
             }
         }
