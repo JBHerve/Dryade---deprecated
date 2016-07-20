@@ -93,17 +93,17 @@ public class River : MonoBehaviour
 
         for (int i = 0; i < directions.Length; ++i)
         {
-            directions[i] = Maximise(new Vector2(0, 0), delta, increments[i]);
+            directions[i] = Maximise(new Vector2(0, 0), delta, increments[i], coast);
         }
 
         return new Vector4();
     }
 
-    public Vector2 Maximise(Vector2 vect, float delta, IncrementObject.Increment incr)
+    public Vector2 Maximise(Vector2 vect, float delta, IncrementObject.Increment incr, List<Vector2> nodes)
     {
         float zero = 0;
         float dst = 1 / zero;
-        foreach (var item in coast)
+        foreach (var item in nodes)
         {
             dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - vect.x, 2) + Mathf.Pow(item.y - vect.y, 2)));
         }
@@ -132,13 +132,12 @@ public class River : MonoBehaviour
         {
             Segment existingSegment = new Segment(node.position, son.position);
 
-
             //On veut savoir si[AB] coupe[A'B']
             //ceci est vrai ssi : 
             //->produit vectoriel (AB A'B') != 0 cad les droites ne sont pas parallèles(et aussi A'!=B', A != B). (cf ligne 99)
             //->ET produit vectoriel (AB, AB').produit vectoriel (AB,AA')<= 0 cad le point d'intersection est entre B' et A' (donc sur le segment [A'B']) (cf ligne 109 -> 111)
             //->ET produit vectoriel (A'B', A'B).produit vectoriel (A'B',A'A)<= 0 cad le point d'intersection est entre B et A (donc sur le segment [AB]) (cf ligne 113 -> 115)
-            if (newSegment * existingSegment  != 0)
+            if (newSegment * existingSegment != 0)
             {
                 //TODO: Add a minimal distance
                 Segment aux1 = new Segment(newSegment.A, existingSegment.B);
