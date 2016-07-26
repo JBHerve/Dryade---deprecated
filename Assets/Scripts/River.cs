@@ -157,43 +157,43 @@ public class River : MonoBehaviour
         
         return terrainData.GetHeight(x, y);
     }
-    
 
-    //public Vector2 FarFromRiver(Node node, Vector2 point, IncrementObject.Increment incr)
-    //{
-    //    if (node.isALeaf())
-    //    {
-    //        return point;
-    //    }
-    //    Segment newSegment = new Segment(node.position, incr(point));
-    //    List<Vector2> values = new List<Vector2>();
-    //    foreach (var son in node.son)
-    //    {
-    //        Segment existingSegment = new Segment(node.position, son.position);
 
-    //        //On veut savoir si[AB] coupe[A'B']
-    //        //ceci est vrai ssi : 
-    //        //->produit vectoriel (AB A'B') != 0 cad les droites ne sont pas parallèles(et aussi A'!=B', A != B). (cf ligne 99)
-    //        //->ET produit vectoriel (AB, AB').produit vectoriel (AB,AA')<= 0 cad le point d'intersection est entre B' et A' (donc sur le segment [A'B']) (cf ligne 109 -> 111)
-    //        //->ET produit vectoriel (A'B', A'B).produit vectoriel (A'B',A'A)<= 0 cad le point d'intersection est entre B et A (donc sur le segment [AB]) (cf ligne 113 -> 115)
-    //        if (newSegment * existingSegment != 0)
-    //        {
-    //            //TODO: Add a minimal distance
-    //            Segment aux1 = new Segment(newSegment.A, existingSegment.B);
-    //            Segment aux2 = new Segment(newSegment.A, existingSegment.A);
-    //            if ((newSegment * aux1) * (newSegment * aux2) <= 0)
-    //            {
-    //                aux1 = new Segment(existingSegment.A, newSegment.B);
-    //                aux2 = new Segment(existingSegment.A, newSegment.A);
-    //                if ((existingSegment * aux1) * (existingSegment * aux2) <= 0)
-    //                {
-    //                    values.Add(point);
-    //                }
-    //            }
-    //            values.Add(FarFromRiver(son, newSegment.Coord, incr));
-    //        }
-    //    }
-    //}
+    public Vector2 FarFromRiver(Node node, Vector2 point, IncrementObject.Increment incr)
+    {
+        if (node.isALeaf())
+        {
+            return point;
+        }
+        Segment newSegment = new Segment(node.position, point);
+        List<Vector2> values = new List<Vector2>();
+        foreach (var son in node.son)
+        {
+            Segment existingSegment = new Segment(node.position, son.position);
+
+            //On veut savoir si[AB] coupe[A'B']
+            //ceci est vrai ssi : 
+            //->produit vectoriel (AB A'B') != 0 cad les droites ne sont pas parallèles(et aussi A'!=B', A != B). (cf ligne 99)
+            //->ET produit vectoriel (AB, AB').produit vectoriel (AB,AA')<= 0 cad le point d'intersection est entre B' et A' (donc sur le segment [A'B']) (cf ligne 109 -> 111)
+            //->ET produit vectoriel (A'B', A'B).produit vectoriel (A'B',A'A)<= 0 cad le point d'intersection est entre B et A (donc sur le segment [AB]) (cf ligne 113 -> 115)
+            if (newSegment * existingSegment != 0)
+            {
+                //TODO: Add a minimal distance
+                Segment aux1 = new Segment(newSegment.A, existingSegment.B);
+                Segment aux2 = new Segment(newSegment.A, existingSegment.A);
+                if ((newSegment * aux1) * (newSegment * aux2) <= 0)
+                {
+                    aux1 = new Segment(existingSegment.A, newSegment.B);
+                    aux2 = new Segment(existingSegment.A, newSegment.A);
+                    if ((existingSegment * aux1) * (existingSegment * aux2) <= 0)
+                    {
+                        point = incr(point);
+                    }
+                }
+            }
+            values.Add(FarFromRiver(son, point, incr));
+        }
+    }
 
     // This work for only ONE river
     public Vector3 GeneratePoint(Node father, Node root, List<Vector2> coast, Terrain terrain)
