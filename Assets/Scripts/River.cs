@@ -111,12 +111,12 @@ public class River : MonoBehaviour
             yPos = Mathf.Max(yPos, directions[i].y);
             yNeg = Mathf.Min(yNeg, directions[i].y);
         }
-        Debug.Log(new Vector4(xPos, yPos, xNeg, yNeg));
         return new Vector4(xPos, yPos, xNeg, yNeg);
     }
 
     public Vector2 Maximise(Vector2 vect, float delta, IncrementObject.Increment incr, List<Vector2> nodes)
     {
+        float y = GetHeight(vect);
         float zero = 0;
         float dst = 1 / zero;
         foreach (var item in nodes)
@@ -124,8 +124,8 @@ public class River : MonoBehaviour
             dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - vect.x, 2) + Mathf.Pow(item.y - vect.y, 2)));
         }
 
-        Vector2 aux = vect;
-        while (dst > delta && IsinTerrain(vect))
+        Vector2 aux = incr(vect);
+        while (dst > delta && IsinTerrain(aux) && GetHeight(aux) >= y)
         {
             vect = aux;
             aux = incr(vect);
@@ -145,6 +145,19 @@ public class River : MonoBehaviour
 
         return point.x > origin.x && point.x < origin.x + size.x && point.y > origin.z && point.y < origin.z + size.z;
     }
+
+    public float GetHeight(Vector2 point)
+    {
+        TerrainData terrainData = gameObject.GetComponent<Terrain>().terrainData;
+        float coeffx = terrainData.size.x / terrainData.heightmapWidth;
+        float coeffz = terrainData.size.z / terrainData.heightmapHeight;
+
+        int x = (int) (point.x * coeffx);
+        int y = (int) (point.y * coeffz);
+        
+        return terrainData.GetHeight(x, y);
+    }
+    
 
     //public Vector2 FarFromRiver(Node node, Vector2 point, IncrementObject.Increment incr)
     //{
