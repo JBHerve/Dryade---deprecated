@@ -171,29 +171,24 @@ public class River : MonoBehaviour
         {
             Segment existingSegment = new Segment(node.position, son.position);
 
-            //On veut savoir si[AB] coupe[A'B']
-            //ceci est vrai ssi : 
-            //->produit vectoriel (AB A'B') != 0 cad les droites ne sont pas parallèles(et aussi A'!=B', A != B). (cf ligne 99)
-            //->ET produit vectoriel (AB, AB').produit vectoriel (AB,AA')<= 0 cad le point d'intersection est entre B' et A' (donc sur le segment [A'B']) (cf ligne 109 -> 111)
-            //->ET produit vectoriel (A'B', A'B).produit vectoriel (A'B',A'A)<= 0 cad le point d'intersection est entre B et A (donc sur le segment [AB]) (cf ligne 113 -> 115)
-            if (newSegment * existingSegment != 0)
+            while (Segment.Cross(newSegment, existingSegment))
             {
-                //TODO: Add a minimal distance
-                Segment aux1 = new Segment(newSegment.A, existingSegment.B);
-                Segment aux2 = new Segment(newSegment.A, existingSegment.A);
-                if ((newSegment * aux1) * (newSegment * aux2) <= 0)
-                {
-                    aux1 = new Segment(existingSegment.A, newSegment.B);
-                    aux2 = new Segment(existingSegment.A, newSegment.A);
-                    if ((existingSegment * aux1) * (existingSegment * aux2) <= 0)
-                    {
-                        point = incr(point);
-                    }
-                }
+                incr(point);
             }
             values.Add(FarFromRiver(son, point, incr));
         }
+        float zero = 0;
+        float x = 1 / zero;
+        float y = 1 / zero;
+
+        foreach (var vect in values)
+        {
+            x = Mathf.Min(x, vect.x);
+            y = Mathf.Min(y, vect.y);
+        }
+        return new Vector2(x, y);
     }
+
 
     // This work for only ONE river
     public Vector3 GeneratePoint(Node father, Node root, List<Vector2> coast, Terrain terrain)
