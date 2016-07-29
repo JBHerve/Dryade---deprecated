@@ -78,27 +78,15 @@ public class River : MonoBehaviour
     public Vector4 FarFromCoast(List<Vector2> coast, float delta, Vector2 father)
     {
 
-        Vector2[] directions = new Vector2[16];
+        Vector2[] directions = new Vector2[4];
 
         IncrementObject.Increment[] increments = new IncrementObject.Increment[directions.Length];
 
 
-        increments[0] = IncrementObject.GenerateIncrement(0, 1);
-        increments[1] = IncrementObject.GenerateIncrement(1, 1);
-        increments[2] = IncrementObject.GenerateIncrement(1, 0);
-        increments[3] = IncrementObject.GenerateIncrement(1, -1);
-        increments[4] = IncrementObject.GenerateIncrement(0, -1);
-        increments[5] = IncrementObject.GenerateIncrement(-1, -1);
-        increments[6] = IncrementObject.GenerateIncrement(-1, 0);
-        increments[7] = IncrementObject.GenerateIncrement(-1, 1);
-        increments[8] = IncrementObject.GenerateIncrement(1, 0.5f);
-        increments[9] = IncrementObject.GenerateIncrement(-1, 0.5f);
-        increments[10] = IncrementObject.GenerateIncrement(0.5f, 1);
-        increments[11] = IncrementObject.GenerateIncrement(0.5f, -1);
-        increments[12] = IncrementObject.GenerateIncrement(-0.5f, -1);
-        increments[13] = IncrementObject.GenerateIncrement(-0.5f, 1);
-        increments[14] = IncrementObject.GenerateIncrement(1, -0.5f);
-        increments[15] = IncrementObject.GenerateIncrement(-1, -0.5f);
+        increments[0] = IncrementObject.GenerateIncrement(0, 10);
+        increments[1] = IncrementObject.GenerateIncrement(10, 0);
+        increments[2] = IncrementObject.GenerateIncrement(-10, 0);
+        increments[3] = IncrementObject.GenerateIncrement(0, -10);
 
 
         for (int i = 0; i < directions.Length; ++i)
@@ -106,10 +94,10 @@ public class River : MonoBehaviour
             directions[i] = Maximise(father, delta, increments[i], coast);
         }
 
-        float xMax = Mathf.Min(directions[1].x, directions[2].x, directions[3].x, directions[8].x, directions[14].x, directions[10].x, directions[11].x);
-        float xMin = Mathf.Max(directions[5].x, directions[6].x, directions[7].x, directions[9].x, directions[15].x, directions[12].x,directions[13].x);
-        float yMax = Mathf.Min(directions[0].y, directions[1].y, directions[7].y, directions[10].y, directions[13].y, directions[8].y, directions[9].y);
-        float yMin = Mathf.Max(directions[3].y, directions[4].y, directions[5].y, directions[11].y, directions[12].y, directions[14].y, directions[15].y);
+        float xMax = directions[1].x;
+        float xMin = directions[2].x;
+        float yMax = directions[0].y;
+        float yMin = directions[3].y;
         
         return new Vector4(xMax, yMax, xMin, yMin);
     }
@@ -119,12 +107,12 @@ public class River : MonoBehaviour
         float y = GetHeight(vect);
         float zero = 0;
         float dst = 1 / zero;
+        Vector2 aux = incr(vect);
         foreach (var item in nodes)
         {
-            dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - vect.x, 2) + Mathf.Pow(item.y - vect.y, 2)));
+            dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - aux.x, 2) + Mathf.Pow(item.y - aux.y, 2)));
         }
 
-        Vector2 aux = incr(vect);
         while (dst > delta && IsinTerrain(aux) && GetHeight(aux) - y >= 0)
         {
             vect = aux;
@@ -194,7 +182,7 @@ public class River : MonoBehaviour
     public Vector3 GeneratePoint(Node father, Node root, List<Vector2> coast, Terrain terrain)
     {
         Vector3 origin = father.position;
-        Vector4 range = FarFromCoast(coast, 20, new Vector2(origin.x, origin.z));
+        Vector4 range = FarFromCoast(coast, 10, new Vector2(origin.x, origin.z));
         //Vector2 tmp = FarFromRiver(root, father, new Vector2(range.x, range.y), IncrementObject.GenerateIncrement(-1, -1));
         //Vector2 tmp2 = FarFromRiver(root, father, new Vector2(range.z, range.w), IncrementObject.GenerateIncrement(1, 1));
         //range = new Vector4(tmp.x, tmp.y, tmp2.x, tmp2.y);
