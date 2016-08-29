@@ -23,7 +23,7 @@ public class River : MonoBehaviour
         var rand = new System.Random();
 
         var point = coast[rand.Next(coast.Count)];
-        Vector3 position = new Vector3(point.x * coeffx, FromTerrainToWorld(0.2f, terrain), point.y * coeffz);
+        Vector3 position = new Vector3(point.x * coeffx, GetHeight(point), point.y * coeffz);
         root = new Node(position, rand.Next(), rand.Next());
         GameObject test = new GameObject();
         test.transform.position = root.position;
@@ -76,28 +76,23 @@ public class River : MonoBehaviour
 
 
     public Vector4 FarFromCoast(List<Vector2> coast, float delta, Vector2 father)
-    {
-
-        Vector2[] directions = new Vector2[4];
-
-        IncrementObject.Increment[] increments = new IncrementObject.Increment[directions.Length];
-
-
-        increments[0] = IncrementObject.GenerateIncrement(0, 10);
-        increments[1] = IncrementObject.GenerateIncrement(10, 0);
-        increments[2] = IncrementObject.GenerateIncrement(-10, 0);
-        increments[3] = IncrementObject.GenerateIncrement(0, -10);
+    { 
+        var incrY = IncrementObject.GenerateIncrement(0, 10);
+        var incrX = IncrementObject.GenerateIncrement(10, 0);
+        var incrx = IncrementObject.GenerateIncrement(-10, 0);
+        var incry = IncrementObject.GenerateIncrement(0, -10);
 
 
-        for (int i = 0; i < directions.Length; ++i)
+        float xMax = Maximise(father, delta, incrX, coast).x;
+        float xMin = Maximise(father, delta, incrx, coast).x;
+        float yMax = Maximise(new Vector2(xMin, father.y), delta, incrY, coast).y;
+        float yMin = Maximise(new Vector2(xMin, father.y), delta, incry, coast).y;
+
+        for (float i = xMin;  xMax - i > 0; ++i)
         {
-            directions[i] = Maximise(father, delta, increments[i], coast);
+            yMax = Mathf.Min(yMax, Maximise(new Vector2(i, father.y), delta, incrY, coast).y);
+            yMin = Mathf.Max(yMin, Maximise(new Vector2(i, father.y), delta, incry, coast).y);
         }
-
-        float xMax = directions[1].x;
-        float xMin = directions[2].x;
-        float yMax = directions[0].y;
-        float yMin = directions[3].y;
         
         return new Vector4(xMax, yMax, xMin, yMin);
     }
@@ -113,7 +108,7 @@ public class River : MonoBehaviour
             dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - aux.x, 2) + Mathf.Pow(item.y - aux.y, 2)));
         }
 
-        while (dst > delta && IsinTerrain(aux) && GetHeight(aux) - y >= 0)
+        while (/*dst >= delta && */IsinTerrain(aux) && GetHeight(aux) - y >= 0)
         {
             vect = aux;
             aux = incr(vect);
@@ -124,7 +119,7 @@ public class River : MonoBehaviour
         }
         return vect;
     }
-    
+
     public bool IsinTerrain(Vector2 point)
     {
         Terrain terrain = gameObject.GetComponent<Terrain>();
@@ -185,9 +180,9 @@ public class River : MonoBehaviour
         Vector4 range = FarFromCoast(coast, 10, new Vector2(origin.x, origin.z));
         //Vector2 tmp = FarFromRiver(root, father, new Vector2(range.x, range.y), IncrementObject.GenerateIncrement(-1, -1));
         //Vector2 tmp2 = FarFromRiver(root, father, new Vector2(range.z, range.w), IncrementObject.GenerateIncrement(1, 1));
-        //range = new Vector4(tmp.x, tmp.y, tmp2.x, tmp2.y);
-        float x = Random.Range(range.w, range.x);
-        float z = Random.Range(range.z, range.y);
+        // = new Vector4(tmp.x, tmp.y, tmp2.x, tmp2.y);
+        float x = Random.Range(range.z, range.x);
+        float z = Random.Range(range.w, range.y);
         float y = GetHeight(new Vector2(x, z));
         return new Vector3(x, y, z);
     }
