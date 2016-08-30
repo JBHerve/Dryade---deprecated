@@ -8,37 +8,44 @@ namespace Assets.Scripts.RiverObjects
 {
     public class Node
     {
-        public Vector3 position { get; set; }
-        public int priority { get; set; }
-        public int flow { get; set; }
-        public List<Node> son { get; set; }
+        public Vector3 Position { get; set; }
+        public int Priority { get; set; }
+        public int Flow { get; set; }
+        public List<Node> Son { get; set; }
+        public Node Father { get; set; }
 
-        public Node(Vector3 position, int priority, int flow)
+        public Node(Vector3 position, int priority, int flow, Node father = null)
         {
-            this.position = position;
-            this.priority = priority;
-            this.flow = flow;
-            son = new List<Node>();
+            this.Position = position;
+            this.Priority = priority;
+            this.Flow = flow;
+            this.Father = father;
+            Son = new List<Node>();
         }
 
         public void AddSon(Node node)
         {
-            son.Add(node);
+            Son.Add(node);
         }
 
-        public bool isALeaf()
+        public bool isLeaf()
         {
-            return son.Count == 0;
+            return Son.Count == 0;
+        }
+
+        public bool isRoot()
+        {
+            return Father == null;
         }
 
         public static bool operator >(Node a, Node b)
         {
-            return a.priority > b.priority;
+            return a.Priority > b.Priority;
         }
 
         public static bool operator <(Node a, Node b) 
         {
-            return a.priority < b.priority;
+            return a.Priority < b.Priority;
         }
     }
 }
