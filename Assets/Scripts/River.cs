@@ -72,15 +72,36 @@ public class River : MonoBehaviour
         }
     }
 
+   public Vector4 ExtendRoot(Node root, float delta, List<Vector2> coast)
+    {
+        Vector2 pos = root.Position;
+
+        float yMax = GetHeight(new Vector2(pos.x, pos.y + delta)) < GetHeight(pos) ? pos.y + delta : pos.y;
+        float xMax = GetHeight(new Vector2(pos.x + delta, pos.y)) < GetHeight(pos) ? pos.x + delta : pos.x;
+        float yMin= GetHeight(new Vector2(pos.x, pos.y - delta)) < GetHeight(pos) ? pos.y - delta : pos.y;
+        float xMin = GetHeight(new Vector2(pos.x - delta, pos.y)) < GetHeight(pos) ? pos.x - delta : pos.x;
 
 
+        var incrY = IncrementObject.GenerateIncrement(0, 1);
+        var incrX = IncrementObject.GenerateIncrement(1, 0);
+        var incrx = IncrementObject.GenerateIncrement(-1, 0);
+        var incry = IncrementObject.GenerateIncrement(0, -1);
+
+        xMax = Maximise(new Vector2(xMax, pos.y), delta, incrX, coast).x;
+        yMax = Maximise(new Vector2(pos.x, yMax), delta, incrY, coast).y;
+        xMin = Maximise(new Vector2(xMin, pos.y), delta, incrx, coast).x;
+        yMin = Maximise(new Vector2(pos.x, yMin), delta, incry, coast).y;
+
+        return new Vector4(xMax, yMax, xMin, yMin);
+    }
+    
 
     public Vector4 FarFromCoast(List<Vector2> coast, float delta, Vector2 father)
     { 
-        var incrY = IncrementObject.GenerateIncrement(0, 10);
-        var incrX = IncrementObject.GenerateIncrement(10, 0);
-        var incrx = IncrementObject.GenerateIncrement(-10, 0);
-        var incry = IncrementObject.GenerateIncrement(0, -10);
+        var incrY = IncrementObject.GenerateIncrement(0, 1);
+        var incrX = IncrementObject.GenerateIncrement(1, 0);
+        var incrx = IncrementObject.GenerateIncrement(-1, 0);
+        var incry = IncrementObject.GenerateIncrement(0, -1);
 
 
         float xMax = Maximise(father, delta, incrX, coast).x;
@@ -108,7 +129,7 @@ public class River : MonoBehaviour
             dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - aux.x, 2) + Mathf.Pow(item.y - aux.y, 2)));
         }
 
-        while (/*dst >= delta && */IsinTerrain(aux) && GetHeight(aux) - y >= 0)
+        while (dst >= delta && IsinTerrain(aux) && GetHeight(aux) - y >= 0)
         {
             vect = aux;
             aux = incr(vect);
@@ -176,8 +197,15 @@ public class River : MonoBehaviour
     // This work for only ONE river
     public Vector3 GeneratePoint(Node father, Node root, List<Vector2> coast, Terrain terrain)
     {
-        Vector3 origin = father.Position;
-        Vector4 range = FarFromCoast(coast, 10, new Vector2(origin.x, origin.z));
+        Vector4 range;
+        if (father.isRoot())
+        {
+            range = ExtendRoot(father, 20, coast);
+        }
+        else
+        {
+            range = FarFromCoast(coast, 20, father.Position);
+        }
         //Vector2 tmp = FarFromRiver(root, father, new Vector2(range.x, range.y), IncrementObject.GenerateIncrement(-1, -1));
         //Vector2 tmp2 = FarFromRiver(root, father, new Vector2(range.z, range.w), IncrementObject.GenerateIncrement(1, 1));
         // = new Vector4(tmp.x, tmp.y, tmp2.x, tmp2.y);
@@ -186,6 +214,7 @@ public class River : MonoBehaviour
         float y = GetHeight(new Vector2(x, z));
         return new Vector3(x, y, z);
     }
+
 
     public float FromTerrainToWorld(float y, Terrain terrain)
     {
