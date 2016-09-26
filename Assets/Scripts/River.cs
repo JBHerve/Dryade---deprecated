@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.RiverObjects;
+using Assets.Scripts.Tools;
 
 public class River : MonoBehaviour
 {
@@ -72,13 +73,13 @@ public class River : MonoBehaviour
         }
     }
 
-   public Vector4 ExtendRoot(Node root, float delta, List<Vector2> coast)
+    public Vector4 ExtendRoot(Node root, float delta, List<Vector2> coast)
     {
         Vector2 pos = root.Position;
 
         float yMax = GetHeight(new Vector2(pos.x, pos.y + delta)) < GetHeight(pos) ? pos.y + delta : pos.y;
         float xMax = GetHeight(new Vector2(pos.x + delta, pos.y)) < GetHeight(pos) ? pos.x + delta : pos.x;
-        float yMin= GetHeight(new Vector2(pos.x, pos.y - delta)) < GetHeight(pos) ? pos.y - delta : pos.y;
+        float yMin = GetHeight(new Vector2(pos.x, pos.y - delta)) < GetHeight(pos) ? pos.y - delta : pos.y;
         float xMin = GetHeight(new Vector2(pos.x - delta, pos.y)) < GetHeight(pos) ? pos.x - delta : pos.x;
 
 
@@ -94,10 +95,10 @@ public class River : MonoBehaviour
 
         return new Vector4(xMax, yMax, xMin, yMin);
     }
-    
+
 
     public Vector4 FarFromCoast(List<Vector2> coast, float delta, Vector2 father)
-    { 
+    {
         var incrY = IncrementObject.GenerateIncrement(0, 1);
         var incrX = IncrementObject.GenerateIncrement(1, 0);
         var incrx = IncrementObject.GenerateIncrement(-1, 0);
@@ -109,12 +110,12 @@ public class River : MonoBehaviour
         float yMax = Maximise(new Vector2(xMin, father.y), delta, incrY, coast).y;
         float yMin = Maximise(new Vector2(xMin, father.y), delta, incry, coast).y;
 
-        for (float i = xMin;  xMax - i > 0; ++i)
+        for (float i = xMin; xMax - i > 0; ++i)
         {
             yMax = Mathf.Min(yMax, Maximise(new Vector2(i, father.y), delta, incrY, coast).y);
             yMin = Mathf.Max(yMin, Maximise(new Vector2(i, father.y), delta, incry, coast).y);
         }
-        
+
         return new Vector4(xMax, yMax, xMin, yMin);
     }
 
@@ -156,41 +157,32 @@ public class River : MonoBehaviour
         float coeffx = terrainData.size.x / terrainData.heightmapWidth;
         float coeffz = terrainData.size.z / terrainData.heightmapHeight;
 
-        int x = (int) (point.x * coeffx);
-        int y = (int) (point.y * coeffz);
-        
+        int x = (int)(point.x * coeffx);
+        int y = (int)(point.y * coeffz);
+
         return terrainData.GetHeight(x, y);
     }
 
 
-    public Vector2 FarFromRiver(Node root,Node node, Vector2 point, IncrementObject.Increment incr)
+    public Vector2 FarFromRiver(Node root, Node node, Vector2 point, IncrementObject.Increment incr)
     {
         if (root.isLeaf())
         {
             return point;
         }
-        Segment newSegment = new Segment(node.Position, point);
-        List<Vector2> values = new List<Vector2>();
         foreach (var son in root.Son)
         {
-            Segment existingSegment = new Segment(node.Position, son.Position);
+            if (son != node)
 
-            while (Segment.Cross(newSegment, existingSegment))
-            {
-                incr(point);
-            }
-            values.Add(FarFromRiver(son, node, point, incr));
-        }
-        float zero = 0;
-        float x = 1 / zero;
-        float y = 1 / zero;
+                while (VectorUtils.Distance(son.Position, root.Position, point, node.Position) < Mathf.Sqrt(2))
+                {
+                    point = incr(point);
+                }
 
-        foreach (var vect in values)
-        {
-            x = Mathf.Min(x, vect.x);
-            y = Mathf.Min(y, vect.y);
+            FarFromRiver(son, node, point, incr);
+
         }
-        return new Vector2(x, y);
+        return point;
     }
 
 
@@ -206,9 +198,11 @@ public class River : MonoBehaviour
         {
             range = FarFromCoast(coast, 20, father.Position);
         }
-        //Vector2 tmp = FarFromRiver(root, father, new Vector2(range.x, range.y), IncrementObject.GenerateIncrement(-1, -1));
-        //Vector2 tmp2 = FarFromRiver(root, father, new Vector2(range.z, range.w), IncrementObject.GenerateIncrement(1, 1));
-        // = new Vector4(tmp.x, tmp.y, tmp2.x, tmp2.y);
+        Vector2 tmp = FarFromRiver(root, father, new Vector2(range.x, father.Position.y), IncrementObject.GenerateIncrement(-1, 0));
+        Vector2 tmp2 = FarFromRiver(root, father, new Vector2(range.z, father.Position.y), IncrementObject.GenerateIncrement(1, 0));
+        Vector2 tmp3 = FarFromRiver(root, father, new Vector2(father.Position.x, range.y), IncrementObject.GenerateIncrement(0, -1));
+        Vector2 tmp4 = FarFromRiver(root, father, new Vector2(father.Position.x, range.w), IncrementObject.GenerateIncrement(0, 1));
+        range = new Vector4(tmp.x, tmp3.y, tmp2.x, tmp4.y);
         float x = Random.Range(range.z, range.x);
         float z = Random.Range(range.w, range.y);
         float y = GetHeight(new Vector2(x, z));
