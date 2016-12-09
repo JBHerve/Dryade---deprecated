@@ -8,17 +8,19 @@ public class River : MonoBehaviour
 {
     public int seed;
     private Node root;
-    private Node father;
-    private List<Vector2> coast;
 
+    private List<Vector2> coast;
+    private TerrainData terrainData;
+    Queue<Node> queue;
     // Use this for initialization
     void Start()
     {
         Terraformer terraformer = new Terraformer(seed);
         Terrain terrain = gameObject.GetComponent<Terrain>();
         coast = terraformer.SetHeightMap(terrain, 0.2f, 0.1f, 6, 6);
-        float coeffx = terrain.terrainData.size.x / terrain.terrainData.heightmapWidth;
-        float coeffz = terrain.terrainData.size.z / terrain.terrainData.heightmapHeight;
+        terrainData = terrain.terrainData;
+        float coeffx = terrainData.size.x / terrainData.heightmapWidth;
+        float coeffz = terrainData.size.z / terrainData.heightmapHeight;
 
         //Node Construction
         var rand = new System.Random();
@@ -26,9 +28,10 @@ public class River : MonoBehaviour
         var point = coast[rand.Next(coast.Count)];
         Vector3 position = new Vector3(point.x * coeffx, GetHeight(point), point.y * coeffz);
         root = new Node(position, rand.Next(), rand.Next());
-        GameObject test = new GameObject();
-        test.transform.position = root.Position;
-        father = root;
+        queue = new Queue<Node>();
+        queue.Enqueue(root);
+        GameObject tmp = new GameObject();
+        tmp.transform.position = root.Position;
     }
 
     // Update is called once per frame
@@ -36,44 +39,58 @@ public class River : MonoBehaviour
     {
         if (Input.anyKeyDown)
         {
-            Terrain terrain = gameObject.GetComponent<Terrain>();
-            GameObject test2 = new GameObject();
-            test2.transform.position = GeneratePoint(father, root, coast, terrain);
-            var tmp = new Node(test2.transform.position, 0, 0, father);
-            father.AddSon(tmp);
-            father = tmp;
+            Queue<Node> aux = new Queue<Node>();
+            while (queue.Count != 0)
+            {
+                Node tmpNode = queue.Dequeue();
+
+                Extend(tmpNode, root);
+                foreach (var son in tmpNode.Sons)
+                {
+                    Debug.DrawLine(tmpNode.Position, son.Position, Color.red, 3000);
+                    GameObject tmp = new GameObject();
+                    tmp.transform.position = son.Position;
+                    aux.Enqueue(son);
+                }
+            }
+            queue = aux;
         }
     }
 
-    public void Extend(Node root, List<Vector2> coast)
+    public void Extend(Node node, Node root)
     {
         int Pa = 70;
         int Ps = Pa + 10;
         var rand = new System.Random();
+        Vector4 range = GenerateRange(node, root, coast);
+        Debug.DrawLine(new Vector3(range.x, 120, range.y), new Vector3(range.x, 120, range.w), Color.blue, 3000);
+        Debug.DrawLine(new Vector3(range.x, 120, range.w), new Vector3(range.z, 120, range.w), Color.blue, 3000);
+        Debug.DrawLine(new Vector3(range.z, 120, range.w), new Vector3(range.z, 120, range.y), Color.blue, 3000);
+        Debug.DrawLine(new Vector3(range.x, 120, range.y), new Vector3(range.z, 120, range.y), Color.blue, 3000);
         if (root.Priority > 1)
         {
             int prob = rand.Next(0, 100);
             if (prob < Pa)
             {
                 //Asymmmetrical extension (Pa)
-                root.AddSon(new Node(new Vector3(), root.Priority, root.Flow));
-                root.AddSon(new Node(new Vector3(), rand.Next(1, root.Priority - 1), root.Flow));
+                node.AddSon(new Node(GeneratePoint(range), node.Priority, node.Flow));
+                node.AddSon(new Node(GeneratePoint(range), 1 /*Strahler ?*/, node.Flow));
             }
             else if (prob < Ps)
             {
                 //Symmetrical extension (Ps)
-                root.AddSon(new Node(new Vector3(), root.Priority - 1, root.Flow));
-                root.AddSon(new Node(new Vector3(), root.Priority - 1, root.Flow));
+                node.AddSon(new Node(GeneratePoint(range), node.Priority - 1, node.Flow));
+                node.AddSon(new Node(GeneratePoint(range), node.Priority - 1, node.Flow));
             }
             else
             {
                 //Exension (Pc)
-                root.AddSon(new Node(new Vector3(), root.Priority, root.Flow));
+                node.AddSon(new Node(GeneratePoint(range), node.Priority, node.Flow));
             }
         }
     }
 
-    public Vector4 ExtendRoot(Node root, float delta, List<Vector2> coast)
+    public Vector4 FarFromCoastRoot(Node root, float delta)
     {
         Vector2 pos = root.Position;
 
@@ -83,21 +100,41 @@ public class River : MonoBehaviour
         float xMin = GetHeight(new Vector2(pos.x - delta, pos.y)) < GetHeight(pos) ? pos.x - delta : pos.x;
 
 
-        var incrY = IncrementObject.GenerateIncrement(0, 1);
-        var incrX = IncrementObject.GenerateIncrement(1, 0);
-        var incrx = IncrementObject.GenerateIncrement(-1, 0);
-        var incry = IncrementObject.GenerateIncrement(0, -1);
+        //var incrY = IncrementObject.GenerateIncrement(0, 1);
+        //var incrX = IncrementObject.GenerateIncrement(1, 0);
+        //var incrx = IncrementObject.GenerateIncrement(-1, 0);
+        //var incry = IncrementObject.GenerateIncrement(0, -1);
 
-        xMax = Maximise(new Vector2(xMax, pos.y), delta, incrX, coast).x;
-        yMax = Maximise(new Vector2(pos.x, yMax), delta, incrY, coast).y;
-        xMin = Maximise(new Vector2(xMin, pos.y), delta, incrx, coast).x;
-        yMin = Maximise(new Vector2(pos.x, yMin), delta, incry, coast).y;
+        //xMax = Maximise(new Vector2(xMax, pos.y), delta, incrX, coast).x;
+        //yMax = Maximise(new Vector2(pos.x, yMax), delta, incrY, coast).y;
+        //xMin = Maximise(new Vector2(xMin, pos.y), delta, incrx, coast).x;
+        //yMin = Maximise(new Vector2(pos.x, yMin), delta, incry, coast).y;
 
-        return new Vector4(xMax, yMax, xMin, yMin);
+        //return new Vector4(xMax, yMax, xMin, yMin);
+
+        Vector2 test = new Vector2(pos.x, pos.y);
+        if (xMax != pos.x)
+        {
+            test.x = xMax;
+        }
+        else if (xMin != pos.x)
+        {
+            test.x = xMin;
+        }
+        if (yMax != pos.y)
+        {
+            test.y = yMax;
+        }
+        else if (yMin != pos.y)
+        {
+            test.y = yMin;
+        }
+        return FarFromCoast(test, delta);
+
     }
 
 
-    public Vector4 FarFromCoast(List<Vector2> coast, float delta, Vector2 father)
+    public Vector4 FarFromCoast(Vector2 father, float delta)
     {
         var incrY = IncrementObject.GenerateIncrement(0, 1);
         var incrX = IncrementObject.GenerateIncrement(1, 0);
@@ -110,7 +147,7 @@ public class River : MonoBehaviour
         float yMax = Maximise(new Vector2(xMin, father.y), delta, incrY, coast).y;
         float yMin = Maximise(new Vector2(xMin, father.y), delta, incry, coast).y;
 
-        for (float i = xMin; xMax - i > 0; ++i)
+        for (float i = xMin + 1; xMax - 1 - i > 0; ++i)
         {
             yMax = Mathf.Min(yMax, Maximise(new Vector2(i, father.y), delta, incrY, coast).y);
             yMin = Mathf.Max(yMin, Maximise(new Vector2(i, father.y), delta, incry, coast).y);
@@ -127,7 +164,7 @@ public class River : MonoBehaviour
         Vector2 aux = incr(vect);
         foreach (var item in nodes)
         {
-            dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - aux.x, 2) + Mathf.Pow(item.y - aux.y, 2)));
+            dst = Mathf.Min(VectorUtils.Distance(aux, item), dst);
         }
 
         while (dst >= delta && IsinTerrain(aux) && GetHeight(aux) - y >= 0)
@@ -136,7 +173,7 @@ public class River : MonoBehaviour
             aux = incr(vect);
             foreach (var item in coast)
             {
-                dst = Mathf.Min(dst, Mathf.Sqrt(Mathf.Pow(item.x - aux.x, 2) + Mathf.Pow(item.y - aux.y, 2)));
+                dst = Mathf.Min(dst, VectorUtils.Distance(aux, item));
             }
         }
         return vect;
@@ -164,49 +201,74 @@ public class River : MonoBehaviour
     }
 
 
-    public Vector2 FarFromRiver(Node root, Node node, Vector2 point, IncrementObject.Increment incr)
+    public Vector4 FarFromRiver(Node root, Node node, Vector4 range)
     {
         if (root.isLeaf())
-        {
-            return point;
+        { 
+            return range;
         }
-        foreach (var son in root.Son)
+        foreach (var son in root.Sons)
         {
-            if (son != node)
-
-                while (VectorUtils.Distance(son.Position, root.Position, point, node.Position) < Mathf.Sqrt(2))
+            if (root != node)
+            {
+                if (node.Position.x > son.Position.x)
                 {
-                    point = incr(point);
+                    
+                    while (VectorUtils.Distance(root.Position, son.Position, new Vector2(range.x, node.Position.y)) < VectorUtils.Distance(node.Position.x, range.x) / Mathf.Sqrt(2))
+                    {
+                        --range.x;
+                    }
                 }
+                else
+                {
+                    while (VectorUtils.Distance(root.Position, son.Position, new Vector2(range.z, node.Position.y)) < VectorUtils.Distance(node.Position.x, range.z) / Mathf.Sqrt(2))
+                    {
+                        ++range.z;
+                    }
+                }
+                if (node.Position.y > son.Position.y)
+                {
+                    while (VectorUtils.Distance(root.Position, son.Position, new Vector2(node.Position.x, range.y)) < VectorUtils.Distance(node.Position.y, range.y) / Mathf.Sqrt(2))
+                    {
+                        --range.y;
+                    }
+                }
+                else
+                {
+                    while (VectorUtils.Distance(root.Position, son.Position, new Vector2(node.Position.x, range.w)) < VectorUtils.Distance(node.Position.y, range.w) / Mathf.Sqrt(2))
+                    {
+                        ++range.w;
+                    }
+                }
+            }
 
-            FarFromRiver(son, node, point, incr);
+            range = FarFromRiver(son, node, range);
 
         }
-        return point;
+        return range;
     }
 
-
-    // This work for only ONE river
-    public Vector3 GeneratePoint(Node father, Node root, List<Vector2> coast, Terrain terrain)
+    public Vector3 GeneratePoint(Vector4 range)
     {
-        Vector4 range;
-        if (father.isRoot())
-        {
-            range = ExtendRoot(father, 20, coast);
-        }
-        else
-        {
-            range = FarFromCoast(coast, 20, father.Position);
-        }
-        Vector2 tmp = FarFromRiver(root, father, new Vector2(range.x, father.Position.y), IncrementObject.GenerateIncrement(-1, 0));
-        Vector2 tmp2 = FarFromRiver(root, father, new Vector2(range.z, father.Position.y), IncrementObject.GenerateIncrement(1, 0));
-        Vector2 tmp3 = FarFromRiver(root, father, new Vector2(father.Position.x, range.y), IncrementObject.GenerateIncrement(0, -1));
-        Vector2 tmp4 = FarFromRiver(root, father, new Vector2(father.Position.x, range.w), IncrementObject.GenerateIncrement(0, 1));
-        range = new Vector4(tmp.x, tmp3.y, tmp2.x, tmp4.y);
+
         float x = Random.Range(range.z, range.x);
         float z = Random.Range(range.w, range.y);
         float y = GetHeight(new Vector2(x, z));
         return new Vector3(x, y, z);
+    }
+
+    public Vector4 GenerateRange(Node node, Node root, List<Vector2> coast)
+    {
+        Vector4 range;
+        //if (node.isRoot())
+        //{
+        //    range = FarFromCoastRoot(node, 20);
+        //}
+        //else
+        //{
+            range = FarFromCoast(node.Position, 20);
+        //}
+        return FarFromRiver(root, node, range);
     }
 
 

@@ -11,7 +11,7 @@ namespace Assets.Scripts.RiverObjects
         public Vector3 Position { get; set; }
         public int Priority { get; set; }
         public int Flow { get; set; }
-        public List<Node> Son { get; set; }
+        public List<Node> Sons { get; set; }
         public Node Father { get; set; }
 
         public Node(Vector3 position, int priority, int flow, Node father = null)
@@ -20,17 +20,18 @@ namespace Assets.Scripts.RiverObjects
             this.Priority = priority;
             this.Flow = flow;
             this.Father = father;
-            Son = new List<Node>();
+            Sons = new List<Node>();
         }
 
         public void AddSon(Node node)
         {
-            Son.Add(node);
+            Sons.Add(node);
+            node.Father = this;
         }
 
         public bool isLeaf()
         {
-            return Son.Count == 0;
+            return Sons.Count == 0;
         }
 
         public bool isRoot()
