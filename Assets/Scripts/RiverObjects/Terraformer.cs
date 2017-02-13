@@ -44,10 +44,10 @@ namespace Assets.Scripts.RiverObjects
                     }
                     else
                     {
-                        heightmap[i, j] = value;
+                        heightmap[i, j] = /*value*/ 0;
                         if (isTop)
                         {
-                            list.Add(new Vector2(j, i));
+                            //list.Add(new Vector2(j, i));
                             isTop = false;
                         }
                     }
