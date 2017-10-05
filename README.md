@@ -7,6 +7,7 @@ Dryade is a toolbox for procedural generation, dedicated to Unity. Currently it 
 
 All these tools run using seed system, granting randomness option
 
+![Alt Text](https://github.com/Zibe/Dryade/blob/master/HybridMultifractal%20Terrain.JPG)
 
 ## Quick Start
 
@@ -34,9 +35,9 @@ Want to contribute? Have any question/request/idea ? Fell free to contact me.
 ## Todos
 
  - Procedural river.
- - Relief based on 	hydrography.
+ - Relief based on hydrography.
  - Grant more control on final result.
- - Anything to create more realistic natural and beautiful landscape /
+ - Anything to create more realistic natural and beautiful landscape.
 
 ## License
 Feel free to use thoses script in any of your creations. I will be really glad if you send me some screenshots of your Unity projects which use them.
