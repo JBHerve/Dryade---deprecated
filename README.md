@@ -1,3 +1,16 @@
+# BEFORE GOING FURTHER
+
+I did this project on my free time when I was a student. At this time I was very ambitious and had a poor understanding of noise functions.
+
+Please do not use this code in your project, or use it as a reference. It is badly designed and bugged.
+
+Since I have no plan to fix this code yet, I will leave it untouched.
+I keep it online as a memory of that time, and a showcase.
+
+I wish you the best in your project.
+
+Zibe
+
 # Dryade
 
 Dryade is a toolbox for procedural generation, dedicated to Unity. Currently it provide :
